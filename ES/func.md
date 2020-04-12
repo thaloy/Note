@@ -26,7 +26,7 @@ var run = function peopleRun() { ... } // 命名函数表达式
 ```JavaScript
 var run = () => { ... }
 ```
-它具有如下可以简写的方式
+它具有如下简写
 ```JavaScript
 // 如果参数个数为1,可以省略()
 var run = argv => { ... }
@@ -47,56 +47,55 @@ var run = new Function(' ... ');
 正如字面意思,执行期上下文仅存在于函数的执行阶段,一旦函数执行完毕(除了[闭包](#闭包)),就会被JS的垃圾回收机制回收掉.
 执行期上下文分为2个阶段
 - **初始化阶段**
-	1.	创建VariableObject,函数中索引变量的时候会优先在VariableObject中查找.
-	```JavaScript
-	// 伪代码
-	VariableObject = {
-		this: window,
-		arguments: { callee: current function reference },
-		// 如果是命名函数的话,并且其值是不可以被赋值操作更改的TODO	
-		current function reference
-	};
-	```
-	2.	链接[[Scope Chain]]	
-	3. 	初始化变量声明
-		- **ES5声明**
-		如果是用var声明的变量将其挂载到VariableObject上,其值为undefined
-		- **ES6声明**
-		let/const/class声明的变量将其挂载到TDZ(暂时性死区内)(我认为let/const...是存在变量声明的,区别是挂载地点不一致,关于我为什么这么认为和TDZ的内容可以看另一篇文章TODO)
-	4.	初始化形参,形参和实参统一,挂载到VariableObject上, arguments同步修改.	
-	5.	初始化函数声明并且赋值为函数体. arguments同步修改.
+1.	创建VariableObject,函数中索引变量的时候会优先在VariableObject中查找.
+```JavaScript
+// 伪代码
+VariableObject = {
+	this: window,
+	arguments: { callee: current function reference },
+	// 如果是命名函数的话,其值是不可以被赋值操作更改的
+	if (命名函数) { current function reference }
+};
+```
+2.	链接[[Scope Chain]]	
+3. 	初始化变量声明
+	- **ES5声明**
+	如果是用var声明的变量将其挂载到VariableObject上,其值为undefined
+	- **ES6声明**
+	let/const/class声明的变量将其挂载到TDZ(暂时性死区内)(我认为let/const...是存在变量声明的,区别是挂载地点不一致,关于我为什么这么认为和TDZ的内容可以看另一篇文章TODO)
+4.	初始化形参,形参和实参统一,挂载到VariableObject上, arguments同步修改.	
+5.	初始化函数声明并且赋值为函数体. arguments同步修改.
 
 上面3和5的过程就是常常提到的Hositing(变量提升),即我们可以在函数声明前执行这个函数.在变量声明前访问这个变量只不过得到的是undefined.
 
 - **执行**
-	-	变量的索引优先查找VariableObject. 如果VariableObject上不存在的话则会顺着[[Scope Chain]]递归着索引VariableObject直到直到这个值.
-		类似于对象索引属性的过程,不过不同的是
-		赋值的过程是直接在索引到的VariableObject上赋值,不是在当前执行期上下文的VariableObject上.
-		```JavaScript
-		console.log(window.name) // ''
+1.	变量的索引优先查找VariableObject. 如果VariableObject上不存在的话则会顺着[[Scope Chain]]递归着索引VariableObject直到找到这个值.
+类似于对象索引属性的过程,不过不同的是
+赋值的过程是直接在索引到的VariableObject上赋值,不是在当前执行期上下文的VariableObject上.
+  ```JavaScript
+  console.log(window.name) // ''
+  
+  function executionContextFunc() {
+  	var privateName = name = 2;	
+  }
+  
+  executionContextFunc();
+  console.log(window.name); // 2;
+  ```
+2.	如果是由命名函数表达式方式创建的函数, 是不能修改其current function reference变量的.	
+  ```JavaScript
+  const executionContextFunc = function func() {
+  	func = 2;	
+  
+  	console.log(func); // output = exectionContextFunc.toString();
+  }
+  
+  executionContextFunc();
+  // 严格模式下抛出错误.
+  // 非严格模式下静默失败.
+  ```
 
-		function executionContextFunc() {
-			var privateName = name = 2;	
-		}
-		
-		executionContextFunc();
-		console.log(window.name); // 2;
-		```
-
-	-	如果是由命名函数表达式方式创建的函数, 是不能修改其current function reference变量的.	
-		```JavaScript
-		const executionContextFunc = function func() {
-			func = 2;	
-
-			console.log(func); // output = exectionContextFunc.toString();
-	 	}
-
-		executionContextFunc();
-		// 严格模式下抛出错误.
-		// 非严格模式下静默失败.
-		```
-
-	- 对变量的操作如何涉及到形参,那么arguments会同步更改.
+2.	若对变量的操作如何涉及到形参,那么arguments会同步更改.
 
 #### 作用域和作用域链
 - **作用域**
@@ -229,10 +228,10 @@ addCount.call(obj, ...[1, 2]);
 
 - **bind()**
 bind函数的作用和call/apply一样都是改变this的指向.区别在于
--	call和apply是直接执行
--	bind函数返回一个函数
+call和apply是直接执行
+bind函数返回一个函数
 ```JavaScript
-同👆call和apply的例子
+// 同👆call和apply的例子
 const newAddCount = addCount.bind(obj, 1, 2);
 newAddCount(); // 4
 ```
@@ -252,7 +251,7 @@ newAddCount(1, 2); // 4
 -	**闭包是基于词法分析的语言的天然性质**
 -	**闭包是如何产生的**
 
-######闭包的优势
+###### 闭包的优势
 - **私有变量**
 参见上文IIFE
 - **缓存**
@@ -321,7 +320,7 @@ function memoizeOne(func, equalsArgvs = equalsArgvsDefault, equalsContext = equa
 
 ```
 
-######闭包的劣势
+###### 闭包的劣势
 -	**内存泄露**
 	闭包保存了本应该被垃圾回收装置回收的执行期上下文.
 
