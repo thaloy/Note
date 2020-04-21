@@ -68,6 +68,9 @@ typeof null === 'object'
 ### 实践
 ![typeof](./img/typeof.png)
 
+### 参考文章
+[typeof原理最新解析](https://cloud.tencent.com/developer/article/1362660)
+
 ### TODO
 1.	探究V8是如何实现typeof的,尤其是ES6新增了symbol类型
 2.	探究undefined在底层是如何表示的[这里猜测其可能是和number类型的NaN采用一样的表示方法]
